@@ -1,132 +1,130 @@
-const hitungPembayaranBulanan = (totalHarga, totalDurasi, jumlahDibeli) => {
-  const pembayaranPerBulan = totalHarga / totalDurasi;
-  const pembayaranBulanan = Array.from({ length: totalDurasi }, (_, i) => {
-    const tanggalJatuhTempo = new Date();
-    tanggalJatuhTempo.setMonth(tanggalJatuhTempo.getMonth() + i + 1);
-    const pembayaranSaatIni = Math.min(pembayaranPerBulan, totalHarga);
-    totalHarga -= pembayaranSaatIni;
+const calculateMonthlyPayments = (totalPrice, totalDuration, quantityPurchased) => {
+  const paymentPerMonth = totalPrice / totalDuration;
+  const monthlyPayments = Array.from({ length: totalDuration }, (_, i) => {
+    const dueDate = new Date();
+    dueDate.setMonth(dueDate.getMonth() + i + 1);
+    const currentPayment = Math.min(paymentPerMonth, totalPrice);
+    totalPrice -= currentPayment;
 
     return {
-      tanggalJatuhTempo: tanggalJatuhTempo.toLocaleDateString(),
-      jumlah: `Rp ${pembayaranSaatIni.toFixed(2) * jumlahDibeli}`,
+      dueDate: dueDate.toLocaleDateString(),
+      amount: `$${(currentPayment * quantityPurchased).toFixed(2)}`,
     };
   });
 
-  return pembayaranBulanan;
+  return monthlyPayments;
 };
 
-function beliBuku(
-  detailBuku,
-  persentaseDiskon,
-  persentasePajak,
-  totalDurasi,
-  jumlahDibeli
+function buyBook(
+  bookDetails,
+  discountPercentage,
+  taxPercentage,
+  totalDuration,
+  quantityPurchased
 ) {
-  const TARIF_PAJAK = 0.01;
-  const { harga } = detailBuku;
+  const TAX_RATE = 0.01;
+  const { price } = bookDetails;
 
-  const hargaTotal =
-    harga *
-    (1 - persentaseDiskon / 100) *
-    (1 + (persentasePajak / 100 + TARIF_PAJAK));
+  const totalPrice =
+    price *
+    (1 - discountPercentage / 100) *
+    (1 + (taxPercentage / 100 + TAX_RATE));
 
-  return hitungPembayaranBulanan(hargaTotal, totalDurasi, jumlahDibeli);
+  return calculateMonthlyPayments(totalPrice, totalDuration, quantityPurchased);
 }
 
-function beliBukuWithStock(
-  detailBuku,
-  persentaseDiskon,
-  persentasePajak,
-  stok,
-  jumlahDibeli,
-  totalDurasi
+function buyBookWithStock(
+  bookDetails,
+  discountPercentage,
+  taxPercentage,
+  stock,
+  quantityPurchased,
+  totalDuration
 ) {
-  const TARIF_PAJAK = 0.01;
-  const jadwalPembayaran = beliBuku(
-    detailBuku,
-    persentaseDiskon,
-    persentasePajak,
-    totalDurasi,
-    jumlahDibeli
+  const TAX_RATE = 0.01;
+  const paymentSchedule = buyBook(
+    bookDetails,
+    discountPercentage,
+    taxPercentage,
+    totalDuration,
+    quantityPurchased
   );
-  const hargaTotal =
-    detailBuku.harga *
-    (1 - persentaseDiskon / 100) *
-    (1 + (persentasePajak / 100 + TARIF_PAJAK));
-  const totalBiaya = hargaTotal * jumlahDibeli;
+  const totalPrice =
+    bookDetails.price *
+    (1 - discountPercentage / 100) *
+    (1 + (taxPercentage / 100 + TAX_RATE));
+  const totalCost = totalPrice * quantityPurchased;
 
-  if (stok < jumlahDibeli) {
-    console.log(`Stok tidak mencukupi untuk membeli ${jumlahDibeli} buku.`);
+  if (stock < quantityPurchased) {
+    console.log(`Insufficient stock to purchase ${quantityPurchased} books.`);
     return;
   }
 
-  console.log('Data Pembelian Buku:');
-  console.log(`Jumlah yang dibeli: ${jumlahDibeli} buku`);
-  console.log(`Total biaya: Rp ${totalBiaya.toFixed(2)}`);
+  console.log('Book Purchase Data:');
+  console.log(`Quantity purchased: ${quantityPurchased} books`);
+  console.log(`Total cost: $${totalCost.toFixed(2)}`);
 
-  const sisaStok = stok - jumlahDibeli;
+  const remainingStock = stock - quantityPurchased;
 
-  if (sisaStok > 0) {
-    console.log(`Sisa stok: ${sisaStok} buku`);
-  } else if (sisaStok === 0) {
-    console.log('Barang yang dibeli sudah maksimal dan tidak dapat tambah lagi');
+  if (remainingStock > 0) {
+    console.log(`Remaining stock: ${remainingStock} books`);
+  } else if (remainingStock === 0) {
+    console.log('Maximum quantity of items has been purchased. No more can be added.');
   } else {
-    console.log('Stok habis! Tidak bisa membeli lebih banyak buku.');
+    console.log('Out of stock! Cannot purchase more books.');
   }
   
 
-  console.log('Jadwal Pembayaran:');
-  console.log(jadwalPembayaran);
+  console.log('Payment Schedule:');
+  console.log(paymentSchedule);
 }
 
-const detailBuku = {
-  judul: 'Dilan 1990',
-  pengarang: 'Pidi Baiq',
-  harga: 20000.0,
+const bookDetails = {
+  title: 'Dilan 1990',
+  author: 'Pidi Baiq',
+  price: 20000.0,
 };
 
-const persentaseDiskon = 10;
-const persentasePajak = 35;
-const stokBuku = 15;
-const jumlahDibeli = 17;
-const totalDurasi = 6; // Jangka waktu kredit dalam bulan
+const discountPercentage = 10;
+const taxPercentage = 35;
+const bookStock = 15;
+const quantityPurchased = 17;
+const totalDuration = 6; // Credit duration in months
 
-beliBukuWithStock(
-  detailBuku,
-  persentaseDiskon,
-  persentasePajak,
-  stokBuku,
-  jumlahDibeli,
-  totalDurasi
+buyBookWithStock(
+  bookDetails,
+  discountPercentage,
+  taxPercentage,
+  bookStock,
+  quantityPurchased,
+  totalDuration
 );
 
 console.log('============================================================');
 console.log('==================== Logic Test ============================');
-const elemenMayoritas = nums => {
+const majorityElement = nums => {
   const counts = {};
 
   nums.forEach(num => {
     counts[num] = (counts[num] || 0) + 1;
   });
 
-  let mayoritas;
+  let majority;
   let maxCount = 0;
   Object.keys(counts).forEach(num => {
     if (counts[num] > maxCount) {
-      mayoritas = num;
+      majority = num;
       maxCount = counts[num];
     }
   });
 
   if (maxCount > nums.length / 2) {
-    console.log('Mayoritas:');
-    return mayoritas;
+    console.log('Majority Element:');
+    return majority;
   } else {
     return null;
   }
 };
 
-console.log(elemenMayoritas([3, 2, 3])); // Output: 3
-console.log(elemenMayoritas([2, 2, 1, 1, 1, 2, 2])); // Output: 2
-
-//Ubahlah ke dalam bahasa inggris
+console.log(majorityElement([3, 2, 3])); // Output: 3
+console.log(majorityElement([2, 2, 1, 1, 1, 2, 2])); // Output: 2
